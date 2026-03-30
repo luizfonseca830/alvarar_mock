@@ -1278,6 +1278,10 @@
                     <span style="font-size: 11px;">Enviar p/ Banco</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 6px;">
+                    <button class="action-btn" style="cursor: default; background: #e8f5e9; color: #2e7d32;">&#128176;</button>
+                    <span style="font-size: 11px;">Confirmar Pagamento</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
                     <button class="action-btn" style="cursor: default; background: #e8f5e9; color: #2e7d32;">&#128196;</button>
                     <span style="font-size: 11px;">Emitir Recibo</span>
                 </div>
@@ -3386,12 +3390,12 @@
 
                 <div style="background: #e3f2fd; border: 1px solid #90caf9; padding: 12px; border-radius: 3px; margin-top: 16px; font-size: 12px;">
                     <strong style="color: #1565c0;">&#9432; Integracao BRB:</strong>
-                    <span style="color: #1565c0;">O alvara sera enviado automaticamente via API para processamento pelo BRB. Voce recebera uma notificacao quando o pagamento for concluido.</span>
+                    <span style="color: #1565c0;">O alvara será enviado automaticamente via email para processamento pelo branco.</span>
                 </div>
             </div>
             <div class="ui-dialog-footer">
                 <button class="ui-button ui-button-secondary" onclick="closeDialog('dialogEnviarBanco')">Cancelar</button>
-                <button class="ui-button" style="background: linear-gradient(#00897b, #00695c); border-color: #00695c;" onclick="enviarParaBanco()">&#127974; Enviar para BRB</button>
+                <button class="ui-button" style="background: linear-gradient(#00897b, #00695c); border-color: #00695c;" onclick="abrirPJeOfficeEnvioBanco()">&#9998; Assinar/Enviar para BRB</button>
             </div>
         </div>
     </div>
@@ -3725,6 +3729,7 @@
         let currentEnvioRowId = null; // Linha atual para envio
         let currentEditRowId = null; // Linha atual para edicao
         let currentPagamentoRowId = null; // Linha atual para pagamento
+        let contextoAssinaturaPJe = 'pagamento'; // 'pagamento' ou 'envioBanco'
 
         // Armazena dados de manifestacao por rowId
         // { rowId: { tipo: 'acordo-expresso' | 'concordancia-tacita', documento: 'nome_arquivo.pdf' | null } }
@@ -4055,7 +4060,7 @@
         function openDialog(id) {
             // Resetar formulario de pagamento ao abrir
             if (id === 'dialogPagamento') {
-                resetFormPagamento();
+                resetDialogPagamento();
             }
             // Resetar dialog de novo alvara ao abrir
             if (id === 'dialogNovoAlvara') {
@@ -4943,7 +4948,7 @@
             } else if (statusLower.includes('enviado')) {
                 // Status Enviado ao Banco: Confirmar Pagamento e Visualizar
                 buttons = `
-                    <button class="action-btn pagar" style="background: #e8f5e9; color: #2e7d32;" title="Confirmar Pagamento" onclick="openDialogPagamento('${rowId}')">&#10003;</button>
+                    <button class="action-btn pagar" style="background: #e8f5e9; color: #2e7d32;" title="Confirmar Pagamento" onclick="openDialogPagamento('${rowId}')">&#128176;</button>
                     <button class="action-btn view" title="Visualizar" onclick="openDialog('dialogEditarAlvara')">&#128065;</button>
                 `;
             } else if (statusLower.includes('pago')) {
@@ -5186,7 +5191,37 @@
                 btnAssinar.style.cursor = 'not-allowed';
             }
 
+            contextoAssinaturaPJe = 'pagamento';
             closeDialog('dialogPagamento');
+            openDialog('dialogPJeOffice');
+        }
+
+        // Abrir PJeOffice para assinatura do envio ao banco
+        function abrirPJeOfficeEnvioBanco() {
+            // Atualizar nome do documento no modal
+            const docNome = document.getElementById('pjeDocumentoNome');
+            if (docNome) {
+                docNome.textContent = 'alvara_envio_banco.pdf';
+            }
+
+            // Limpar senha anterior
+            const senhaInput = document.getElementById('pjeSenhaCertificado');
+            if (senhaInput) senhaInput.value = '';
+
+            // Esconder erro de senha
+            const erroSenha = document.getElementById('pjeSenhaErro');
+            if (erroSenha) erroSenha.style.display = 'none';
+
+            // Desabilitar botao assinar
+            const btnAssinar = document.getElementById('btnAssinarPJe');
+            if (btnAssinar) {
+                btnAssinar.disabled = true;
+                btnAssinar.style.opacity = '0.5';
+                btnAssinar.style.cursor = 'not-allowed';
+            }
+
+            contextoAssinaturaPJe = 'envioBanco';
+            closeDialog('dialogEnviarBanco');
             openDialog('dialogPJeOffice');
         }
 
@@ -5259,7 +5294,11 @@
                     // Aguardar um pouco e finalizar
                     setTimeout(() => {
                         closeDialog('dialogAssinandoPJe');
-                        finalizarPagamentoPJe();
+                        if (contextoAssinaturaPJe === 'envioBanco') {
+                            enviarParaBanco();
+                        } else {
+                            finalizarPagamentoPJe();
+                        }
                     }, 1000);
                 }
             }, 800);
@@ -5757,7 +5796,7 @@
             const actionsEl = document.getElementById('actions' + rowId);
             if (actionsEl) {
                 actionsEl.innerHTML = `
-                    <button class="action-btn pagar" style="background: #e8f5e9; color: #2e7d32;" title="Confirmar Pagamento" onclick="openDialogPagamento('${rowId}')">&#10003;</button>
+                    <button class="action-btn pagar" style="background: #e8f5e9; color: #2e7d32;" title="Confirmar Pagamento" onclick="openDialogPagamento('${rowId}')">&#128176;</button>
                     <button class="action-btn view" title="Visualizar" onclick="openDialog('dialogEditarAlvara')">&#128065;</button>
                 `;
             }
@@ -5790,7 +5829,7 @@
                 const actionsEl = document.getElementById('actions' + rowId);
                 if (actionsEl) {
                     actionsEl.innerHTML = `
-                        <button class="action-btn pagar" style="background: #e8f5e9; color: #2e7d32;" title="Confirmar Pagamento" onclick="openDialogPagamento('${rowId}')">&#10003;</button>
+                        <button class="action-btn pagar" style="background: #e8f5e9; color: #2e7d32;" title="Confirmar Pagamento" onclick="openDialogPagamento('${rowId}')">&#128176;</button>
                         <button class="action-btn view" title="Visualizar" onclick="openDialog('dialogEditarAlvara')">&#128065;</button>
                     `;
                 }
