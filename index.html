@@ -2593,11 +2593,16 @@
                     </div>
                 </div>
             </div>
-            <div class="ui-dialog-footer">
-                <button class="ui-button ui-button-secondary" onclick="closeDialog('dialogPagamento')">Cancelar</button>
-                <button class="ui-button ui-button-success" id="btnPagarPag" onclick="abrirPJeOfficeAssinatura()" disabled style="opacity: 0.5; cursor: not-allowed;">
-                    &#9998; Assinar e Enviar ao PJE
+            <div class="ui-dialog-footer" style="display: flex; justify-content: space-between;">
+                <button class="ui-button" style="background: #ff9800; border-color: #f57c00; color: white;" onclick="closeDialog('dialogPagamento'); openDialog('dialogReportarProblema')">
+                    &#9888; Reportar Problema
                 </button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="ui-button ui-button-secondary" onclick="closeDialog('dialogPagamento')">Cancelar</button>
+                    <button class="ui-button ui-button-success" id="btnPagarPag" onclick="abrirPJeOfficeAssinatura()" disabled style="opacity: 0.5; cursor: not-allowed;">
+                        &#9998; Assinar e Enviar ao PJE
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -3716,6 +3721,10 @@
         let fileNameManifestadoAtual = null;
         let currentProfile = 'servidor';
         let currentDevolverRowId = null; // Linha atual para devolucao
+        let currentEnviarBancoRowId = null; // Linha atual para enviar ao banco
+        let currentEnvioRowId = null; // Linha atual para envio
+        let currentEditRowId = null; // Linha atual para edicao
+        let currentPagamentoRowId = null; // Linha atual para pagamento
 
         // Armazena dados de manifestacao por rowId
         // { rowId: { tipo: 'acordo-expresso' | 'concordancia-tacita', documento: 'nome_arquivo.pdf' | null } }
@@ -4438,9 +4447,6 @@
             setTimeout(() => { toast.style.display = 'none'; }, 4000);
         }
 
-        // Estado do envio
-        let currentEnvioRowId = null;
-
         // Action functions
         function openDialogEnvio(rowId) {
             currentEnvioRowId = rowId;
@@ -4881,7 +4887,6 @@
         }
 
         // Editar valores
-        let currentEditRowId = null;
         let currentEditBeneficiario = null;
         let currentEditAlvara = null;
 
@@ -5040,7 +5045,6 @@
         }
 
         // Pagamento
-        let currentPagamentoRowId = null;
         let docPagamentoAnexado = false;
         let nomeDocPagamento = null;
 
@@ -5684,8 +5688,6 @@
         }
 
         // Enviar para Banco (BRB) - Somente Magistrado
-        let currentEnviarBancoRowId = null;
-
         function openDialogEnviarBanco(rowId) {
             currentEnviarBancoRowId = rowId;
             // Fechar outros dialogs que possam estar abertos
