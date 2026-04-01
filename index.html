@@ -4354,6 +4354,10 @@
 
         // Popular banco com dados iniciais (apenas precatórios e credores - SEM alvarás)
         async function popularBancoInicial() {
+            if (!db) {
+                console.error('Banco de dados não inicializado');
+                return;
+            }
             const transaction = db.transaction(['alvaras', 'precatorios', 'credores'], 'readwrite');
 
             // Verificar se já tem precatórios
@@ -4408,6 +4412,10 @@
         // Buscar todos os alvarás do IndexedDB
         function buscarTodosAlvarasDB() {
             return new Promise((resolve, reject) => {
+                if (!db) {
+                    resolve([]);
+                    return;
+                }
                 const transaction = db.transaction(['alvaras'], 'readonly');
                 const store = transaction.objectStore('alvaras');
                 const request = store.getAll();
@@ -4420,6 +4428,10 @@
         // Buscar alvará por ID
         function buscarAlvaraDBPorId(id) {
             return new Promise((resolve, reject) => {
+                if (!db) {
+                    resolve(null);
+                    return;
+                }
                 const transaction = db.transaction(['alvaras'], 'readonly');
                 const store = transaction.objectStore('alvaras');
                 const request = store.get(parseInt(id));
@@ -4432,6 +4444,10 @@
         // Salvar alvará no IndexedDB
         function salvarAlvaraDB(alvara) {
             return new Promise((resolve, reject) => {
+                if (!db) {
+                    reject(new Error('Banco de dados não inicializado'));
+                    return;
+                }
                 const transaction = db.transaction(['alvaras'], 'readwrite');
                 const store = transaction.objectStore('alvaras');
                 const request = store.put(alvara);
@@ -4444,6 +4460,10 @@
         // Adicionar novo alvará
         function adicionarAlvaraDB(alvara) {
             return new Promise((resolve, reject) => {
+                if (!db) {
+                    reject(new Error('Banco de dados não inicializado'));
+                    return;
+                }
                 const transaction = db.transaction(['alvaras'], 'readwrite');
                 const store = transaction.objectStore('alvaras');
                 const request = store.add(alvara);
@@ -4497,7 +4517,9 @@
 
             try {
                 // Deletar o banco de dados existente
-                db.close();
+                if (db) {
+                    db.close();
+                }
                 const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
 
                 deleteRequest.onsuccess = async () => {
@@ -5008,6 +5030,10 @@
         // Marcar histórico como corrigido
         function marcarHistoricoCorrigidoDB(historicoId) {
             return new Promise((resolve, reject) => {
+                if (!db) {
+                    reject(new Error('Banco de dados não inicializado'));
+                    return;
+                }
                 const transaction = db.transaction(['historicoRecusas'], 'readwrite');
                 const store = transaction.objectStore('historicoRecusas');
                 const request = store.get(historicoId);
